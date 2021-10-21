@@ -8,7 +8,7 @@ from config import(
 from utils import (
     label_fake, label_real, create_noise,
     save_generator_image, make_output_dir, 
-    weights_init
+    weights_init, print_params
 )
 from datasets import return_data
 
@@ -37,10 +37,12 @@ if __name__ == '__main__':
 
     print('##### GENERATOR #####')
     print(generator)
+    print_params(generator, 'Generator')
     print('######################')
 
     print('\n##### DISCRIMINATOR #####')
     print(discriminator)
+    print_params(discriminator, 'Discriminator')
     print('######################')
 
     # optimizers

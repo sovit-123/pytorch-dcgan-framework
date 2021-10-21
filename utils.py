@@ -68,3 +68,20 @@ def weights_init(m):
     elif classname.find('BatchNorm') != -1:
         nn.init.normal_(m.weight.data, 1.0, 0.02)
         nn.init.constant_(m.bias.data, 0)
+
+def print_params(model, model_name=None):
+    """
+    Function to print the total number of parameters and trainable 
+    parameters in a model.
+
+    Parameters
+    :param model: PyTorch model instance.
+    :parm model_name: Name of the model. A string.
+    """
+    # total parameters and trainable parameters
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"MODEL: {model_name}")
+    print(f"{total_params:,} total parameters.")
+    total_trainable_params = sum(
+        p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"{total_trainable_params:,} training parameters.\n")
