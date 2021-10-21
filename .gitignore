@@ -1,9 +1,9 @@
-outputs_CELEBA/*.png
+outputs_CELEBA/gen*.png
 outputs_CELEBA/*.pth
-outputs_CIFAR10/*.png
+outputs_CIFAR10/gen*.png
 outputs_CIFAR10/*.pth
-outputs_MNIST/*.png
+outputs_MNIST/gen*.png
 outputs_MNIST/*.pth
-outputs_FashionMNIST/*.png
+outputs_FashionMNIST/gen*.png
 outputs_FashionMNIST/*.pth
 __pycache__/

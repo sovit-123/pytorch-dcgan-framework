@@ -3,7 +3,7 @@ from config import(
     IMAGE_SIZE, NZ, DEVICE, SAMPLE_SIZE, 
     EPOCHS, K, BATCH_SIZE, DATASET, 
     NUM_WORKERS, PRINT_EVERY, BETA1, BETA2,
-    N_CHANNELS, LEARNING_RATE
+    N_CHANNELS, LEARNING_RATE, MULT_FACTOR
 )
 from utils import (
     label_fake, label_real, create_noise,
@@ -27,7 +27,9 @@ plt.style.use('ggplot')
 
 if __name__ == '__main__':
     # initialize the generator
-    generator = Generator(NZ, IMAGE_SIZE, N_CHANNELS).to(DEVICE)
+    generator = Generator(
+        NZ, IMAGE_SIZE, N_CHANNELS, MULT_FACTOR
+    ).to(DEVICE)
     # initialize the discriminator
     discriminator = Discriminator(N_CHANNELS).to(DEVICE)
     # initialize generator weights

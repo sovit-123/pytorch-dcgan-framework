@@ -1,12 +1,13 @@
 import torch.nn as nn
+import torch.nn.functional as F
 
 # generator model consisting only of Linear layers
 class Generator(nn.Module):
     # init takes in the latent vector size
-    def __init__(self, nz, image_size=64, n_channels=1):
+    def __init__(self, nz, image_size=64, n_channels=1, mult_factor=1):
         super(Generator, self).__init__()
         self.nz = nz
-        self.first_out_channels = 512*1
+        self.first_out_channels = 512*mult_factor
         self.image_size = image_size
         self.n_channels = n_channels
         self.kernel_size = 4
@@ -55,7 +56,7 @@ class Discriminator(nn.Module):
         self.kernel_size = 4
         self.leaky_relu_neg_slope = 0.2
 
-        self.disc_model = nn.Sequential(
+        self.conv_layers = nn.Sequential(
             nn.Conv2d(
                 self.n_channels, self.first_out_channels, 
                 kernel_size=self.kernel_size, 
@@ -80,12 +81,20 @@ class Discriminator(nn.Module):
             nn.BatchNorm2d(self.first_out_channels*8),
             nn.LeakyReLU(self.leaky_relu_neg_slope, inplace=True),
             nn.Conv2d(
-                self.first_out_channels*8, 1, 
+                self.first_out_channels*8, 512, 
                 kernel_size=self.kernel_size, 
                 stride=1, padding=0, bias=False),
-            nn.Flatten(),
+        )
+
+        self.linear_layers = nn.Sequential(
+            nn.Linear(512, 1),
+            nn.LeakyReLU(self.leaky_relu_neg_slope, inplace=True),
             nn.Sigmoid()
         )
 
     def forward(self, x):
-        return self.disc_model(x)
+        x = self.conv_layers(x)
+        bs, _, _, _ = x.shape
+        x = F.adaptive_avg_pool2d(x, 1).reshape(bs, -1)
+        x = self.linear_layers(x)
+        return x
