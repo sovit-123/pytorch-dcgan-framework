@@ -25,6 +25,56 @@ import glob as glob
 plt.style.use('ggplot')
 
 
+# function to train the discriminator network
+def train_discriminator(
+    optimizer, data_real, data_fake, label_fake, label_real
+):
+    # get the batch size
+    b_size = data_real.size(0)
+    # get the real label vector
+    real_label = label_real(b_size).to(DEVICE)
+    # print(real_label.shape)
+    # get the fake label vector
+    fake_label = label_fake(b_size).to(DEVICE)
+
+    optimizer.zero_grad()
+
+    # get the outputs by doing real data forward pass
+    output_real = discriminator(data_real).view(-1)
+    loss_real = criterion(output_real, real_label)
+    # get the outputs by doing fake data forward pass
+    output_fake = discriminator(data_fake).view(-1)
+    loss_fake = criterion(output_fake, fake_label)
+
+    # real loss backprop
+    loss_real.backward()
+    # fake data loss backprop
+    loss_fake.backward()
+    # update discriminator parameters
+    optimizer.step()
+
+    return loss_real + loss_fake
+
+# function to train the generator network
+def train_generator(optimizer, data_fake, label_real):
+    # get the batch size
+    b_size = data_fake.size(0)
+    # get the real label vector
+    real_label = label_real(b_size).to(DEVICE)
+
+    optimizer.zero_grad()
+
+    # output by doing a forward pass of the fake data through discriminator
+    output = discriminator(data_fake).view(-1)
+    loss = criterion(output, real_label)
+
+    # backprop 
+    loss.backward()
+    # update generator parameters
+    optimizer.step()
+
+    return loss
+
 if __name__ == '__main__':
     # initialize the generator
     generator = Generator(
@@ -60,57 +110,7 @@ if __name__ == '__main__':
 
     losses_g = [] # to store generator loss after each epoch
     losses_d = [] # to store discriminator loss after each epoch
-    images = [] # to store images generatd by the generator
-
-    # function to train the discriminator network
-    def train_discriminator(
-        optimizer, data_real, data_fake, label_fake, label_real
-    ):
-        # get the batch size
-        b_size = data_real.size(0)
-        # get the real label vector
-        real_label = label_real(b_size).to(DEVICE)
-        # print(real_label.shape)
-        # get the fake label vector
-        fake_label = label_fake(b_size).to(DEVICE)
-
-        optimizer.zero_grad()
-
-        # get the outputs by doing real data forward pass
-        output_real = discriminator(data_real).view(-1)
-        loss_real = criterion(output_real, real_label)
-        # get the outputs by doing fake data forward pass
-        output_fake = discriminator(data_fake).view(-1)
-        loss_fake = criterion(output_fake, fake_label)
-
-        # real loss backprop
-        loss_real.backward()
-        # fake data loss backprop
-        loss_fake.backward()
-        # update discriminator parameters
-        optimizer.step()
-
-        return loss_real + loss_fake
-
-    # function to train the generator network
-    def train_generator(optimizer, data_fake, label_real):
-        # get the batch size
-        b_size = data_fake.size(0)
-        # get the real label vector
-        real_label = label_real(b_size).to(DEVICE)
-
-        optimizer.zero_grad()
-
-        # output by doing a forward pass of the fake data through discriminator
-        output = discriminator(data_fake).view(-1)
-        loss = criterion(output, real_label)
-
-        # backprop 
-        loss.backward()
-        # update generator parameters
-        optimizer.step()
-
-        return loss
+    images = [] # to store images generatd by the generator    
 
     generator.train()
     discriminator.train()
