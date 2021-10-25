@@ -21,6 +21,7 @@ import imageio
 import torch
 import matplotlib.pyplot as plt
 import glob as glob
+import time
 
 plt.style.use('ggplot')
 
@@ -129,9 +130,12 @@ if __name__ == '__main__':
     make_output_dir(DATASET)
 
     for epoch in range(EPOCHS):
+        print(f"Epoch {epoch+1} of {EPOCHS}")
+        epoch_start = time.time()
         loss_g = 0.0
         loss_d = 0.0
         for bi, data in enumerate(train_loader):
+            print(f"Batches: [{bi+2}/{len(train_loader)}]", end='\r')
             image, _ = data
             image = image.to(DEVICE)
             b_size = len(image)
@@ -148,7 +152,7 @@ if __name__ == '__main__':
             loss_g += train_generator(optim_g, data_fake, label_real)
 
             if (bi+1) % PRINT_EVERY == 0:
-                print(f"Epoch/Batch [{epoch+1}/{bi+1}], Gen_loss: {loss_g/bi}, Disc_loss: {loss_d/bi}")
+                print(f"[Epoch/Epochs] [{epoch+1}/{EPOCHS}], [Batch/Batches] [{bi+1}/{len(train_loader)}], Gen_loss: {loss_g/bi}, Disc_loss: {loss_d/bi}")
 
         # create the final fake image for the epoch
         generated_img = generator(noise).cpu().detach()
@@ -161,10 +165,11 @@ if __name__ == '__main__':
         epoch_loss_d = loss_d / bi # total discriminator loss for the epoch
         losses_g.append(epoch_loss_g.detach().cpu())
         losses_d.append(epoch_loss_d.detach().cpu())
+        epoch_end = time.time()
         
-        print(f"Epoch {epoch+1} of {EPOCHS}")
         print(f"Generator loss: {epoch_loss_g:.8f}, Discriminator loss: {epoch_loss_d:.8f}\n")
-        print('-'*50, '\n')
+        print(f"Took {(epoch_end-epoch_start):.3f} seconds for epoch {epoch+1}")
+        print('-'*50, end='\n')
 
     print('DONE TRAINING')
     torch.save(generator.state_dict(), f"outputs_{DATASET}/generator.pth")
