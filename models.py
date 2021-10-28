@@ -44,7 +44,9 @@ class Generator(nn.Module):
         )
 
     def forward(self, x):
-        return self.gen_model(x)
+        out = self.gen_model(x)
+        # print(out.shape)
+        return out
 
 
 # discriminator model consisting only of linear layers
