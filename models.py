@@ -7,7 +7,7 @@ class Generator(nn.Module):
     def __init__(self, nz, image_size=64, n_channels=1, mult_factor=1):
         super(Generator, self).__init__()
         self.nz = nz
-        self.first_out_channels = 512*mult_factor
+        self.first_out_channels = 512
         self.image_size = image_size
         self.n_channels = n_channels
         self.kernel_size = 4
@@ -38,7 +38,7 @@ class Generator(nn.Module):
             nn.BatchNorm2d(self.first_out_channels//8),
             nn.ReLU(True),
             nn.ConvTranspose2d(
-                self.image_size, self.n_channels, kernel_size=self.kernel_size, 
+                self.first_out_channels//8, self.n_channels, kernel_size=self.kernel_size, 
                 stride=2, padding=1, bias=False),
             nn.Tanh()
         )

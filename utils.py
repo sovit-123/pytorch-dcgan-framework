@@ -1,8 +1,11 @@
 import torch
 import torch.nn as nn
 import os
+import matplotlib.pyplot as plt
 
 from torchvision.utils import save_image
+
+plt.style.use('ggplot')
 
 def label_real(size):
     """
@@ -85,3 +88,18 @@ def print_params(model, model_name=None):
     total_trainable_params = sum(
         p.numel() for p in model.parameters() if p.requires_grad)
     print(f"{total_trainable_params:,} training parameters.\n")
+
+def save_loss_plots(gen_loss, disc_loss, path):
+    """
+    Function to save the plots to disk.
+
+    Parameters
+    :param plot_lost: List containing the values.
+    :param name: Path to save the plot.
+    """
+    # plot and save the generator and discriminator loss
+    plt.figure(figsize=(10, 7))
+    plt.plot(gen_loss, label='Generator loss')
+    plt.plot(disc_loss, label='Discriminator Loss')
+    plt.legend()
+    plt.savefig(path)

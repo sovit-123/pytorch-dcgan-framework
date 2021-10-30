@@ -8,7 +8,7 @@ from config import(
 from utils import (
     label_fake, label_real, create_noise,
     save_generator_image, make_output_dir, 
-    weights_init, print_params
+    weights_init, print_params, save_loss_plots
 )
 from datasets import return_data
 
@@ -19,12 +19,8 @@ import torch.optim as optim
 import torch.nn as nn
 import imageio
 import torch
-import matplotlib.pyplot as plt
 import glob as glob
 import time
-
-plt.style.use('ggplot')
-
 
 # function to train the discriminator network
 def train_discriminator(
@@ -54,7 +50,8 @@ def train_discriminator(
     # update discriminator parameters
     optimizer.step()
 
-    return loss_real + loss_fake
+    loss = loss_real + loss_fake
+    return loss
 
 # function to train the generator network
 def train_generator(optimizer, data_fake, label_real):
@@ -111,6 +108,8 @@ if __name__ == '__main__':
 
     losses_g = [] # to store generator loss after each epoch
     losses_d = [] # to store discriminator loss after each epoch
+    batch_losses_g = [] # to store generator loss after each batch
+    batch_losses_d = [] # to store discriminator loss after each batch
     images = [] # to store images generatd by the generator    
 
     generator.train()
@@ -144,12 +143,21 @@ if __name__ == '__main__':
                 data_fake = generator(create_noise(b_size, NZ).to(DEVICE)).detach()
                 data_real = image
                 # train the discriminator network
-                loss_d += train_discriminator(
+                bi_loss_d = train_discriminator(
                     optim_d, data_real, data_fake, label_fake, label_real
                 )
+
+                # add current batch loss to `loss_d`
+                loss_d += bi_loss_d
+                # append current batch loss to `batch_losses_d`
+                batch_losses_d.append(bi_loss_d.detach().cpu())
             data_fake = generator(create_noise(b_size, NZ).to(DEVICE))
             # train the generator network
-            loss_g += train_generator(optim_g, data_fake, label_real)
+            bi_loss_g = train_generator(optim_g, data_fake, label_real)
+            # add current batch loss to `loss_g`
+            loss_g += bi_loss_g
+            # append current batch loss to `batch_losses_g`
+            batch_losses_g.append(bi_loss_g.detach().cpu())
 
             if (bi+1) % PRINT_EVERY == 0:
                 print(f"[Epoch/Epochs] [{epoch+1}/{EPOCHS}], [Batch/Batches] [{bi+1}/{len(train_loader)}], Gen_loss: {loss_g/bi}, Disc_loss: {loss_d/bi}")
@@ -180,9 +188,9 @@ if __name__ == '__main__':
     imgs = [Image.open(image_path) for image_path in all_saved_image_paths]
     imageio.mimsave(f"outputs_{DATASET}/generator_images.gif", imgs)
 
-    # plot and save the generator and discriminator loss
-    plt.figure(figsize=(10, 7))
-    plt.plot(losses_g, label='Generator loss')
-    plt.plot(losses_d, label='Discriminator Loss')
-    plt.legend()
-    plt.savefig(f"outputs_{DATASET}/loss.png")
+    # save epoch loss plot
+    save_loss_plots(losses_g, losses_d, f"outputs_{DATASET}/epoch_loss.png")
+    # save batch loss plot
+    save_loss_plots(
+        batch_losses_g, batch_losses_d, f"outputs_{DATASET}/batch_loss.png"
+    )
