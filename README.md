@@ -45,4 +45,6 @@ input
 
 * MNIST, Fashion MNIST, and CIFAR10 data are directly downloaded from PyTorch `torchvision` module.
 * To train on CelebA and Abstract Art Gallery dataset, you need to download them and arrange them proper directory first.
-* Download CelebA dataset.
+* [Download CelebA dataset](https://drive.google.com/drive/folders/0B7EVK8r0v71pTUZsaXdaSnZBZzg?resourcekey=0-rJlzl934LzC-Xp28GeIBzQ).
+  * Download the `img_align_celeba.zip` file.
+* [Download Abstract Art Gallery dataset](https://www.kaggle.com/bryanb/abstract-art-gallery).
