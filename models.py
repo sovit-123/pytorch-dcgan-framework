@@ -4,7 +4,7 @@ import torch.nn.functional as F
 # generator model consisting only of Linear layers
 class Generator(nn.Module):
     # init takes in the latent vector size
-    def __init__(self, nz, image_size=64, n_channels=1, mult_factor=1):
+    def __init__(self, nz, image_size=64, n_channels=1):
         super(Generator, self).__init__()
         self.nz = nz
         self.first_out_channels = 512

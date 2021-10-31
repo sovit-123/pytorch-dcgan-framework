@@ -6,7 +6,7 @@ NUM_WORKERS = 4
 MULT_FACTOR = 1
 IMAGE_SIZE = 64*MULT_FACTOR
 # image channels
-N_CHANNELS = 3
+N_CHANNELS = 1
 
 # SAMPLE_SIZE is the total number of images in row x column form...
 # if SAMPLE_SIZE = 64, then 8x8 image grids will be saved to disk...
@@ -17,8 +17,9 @@ NZ = 100
 # number of steps to apply to the discriminator
 K = 1
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# one of 'MNIST', 'FashionMNIST', 'CIFAR10', 'CELEBA'
-DATASET = 'CELEBA'
+# one of 'MNIST', 'FashionMNIST', 'CIFAR10', 'CELEBA', ...
+# ... 'ABSTRACT_ART'
+DATASET = 'MNIST'
 
 # for printing metrics
 PRINT_EVERY = 100

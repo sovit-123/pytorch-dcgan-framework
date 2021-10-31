@@ -83,3 +83,22 @@ def return_data(
             num_workers=num_worders
         )
         return train_loader
+
+    if data == 'ABSTRACT_ART':
+        transform = transforms.Compose([
+            transforms.Resize((image_size, image_size)),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                (0.5, 0.5, 0.5),
+                (0.5, 0.5, 0.5)
+            ),
+        ])
+        train_data = datasets.ImageFolder(
+        root='../input/data/abstract_art_gallery/Abstract_gallery',
+        transform=transform
+        )
+        train_loader = DataLoader(
+            train_data, batch_size=BATCH_SIZE, shuffle=True, 
+            num_workers=num_worders
+        )
+        return train_loader
