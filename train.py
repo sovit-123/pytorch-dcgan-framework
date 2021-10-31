@@ -76,7 +76,7 @@ def train_generator(optimizer, data_fake, label_real):
 if __name__ == '__main__':
     # initialize the generator
     generator = Generator(
-        NZ, IMAGE_SIZE, N_CHANNELS, MULT_FACTOR
+        NZ, IMAGE_SIZE, N_CHANNELS
     ).to(DEVICE)
     # initialize the discriminator
     discriminator = Discriminator(N_CHANNELS).to(DEVICE)
