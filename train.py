@@ -3,7 +3,7 @@ from config import(
     IMAGE_SIZE, NZ, DEVICE, SAMPLE_SIZE, 
     EPOCHS, K, BATCH_SIZE, DATASET, 
     NUM_WORKERS, PRINT_EVERY, BETA1, BETA2,
-    N_CHANNELS, LEARNING_RATE, MULT_FACTOR
+    N_CHANNELS, LEARNING_RATE
 )
 from utils import (
     label_fake, label_real, create_noise,

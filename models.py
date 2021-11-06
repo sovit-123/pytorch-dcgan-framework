@@ -1,7 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-# generator model consisting only of Linear layers
 class Generator(nn.Module):
     # init takes in the latent vector size
     def __init__(self, nz, image_size=64, n_channels=1):
@@ -49,7 +48,6 @@ class Generator(nn.Module):
         return out
 
 
-# discriminator model consisting only of linear layers
 class Discriminator(nn.Module):
     def __init__(self, n_channels=1):
         super(Discriminator, self).__init__()
