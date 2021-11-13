@@ -8,6 +8,12 @@
 
 
 
+## TODO
+* Support for resuming training.
+
+
+
+
 ## Current Datasets Supported
 
 * MNIST

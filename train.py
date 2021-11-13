@@ -166,14 +166,21 @@ if __name__ == '__main__':
             loss_g += bi_loss_g
             # append current generator batch loss to `batch_losses_g`
             batch_losses_g.append(bi_loss_g.detach().cpu())
+            # add_tensorboard_scalar(
+            #     'Batch_Loss', writer, 
+            #     {'gen_batch_loss': loss_g/(bi+1), 'disc_batch_loss': loss_d/(bi+1)}, 
+            #     global_batch_iter
+            # )
             add_tensorboard_scalar(
                 'Batch_Loss', writer, 
-                {'gen_batch_loss': loss_g/(bi+1), 'disc_batch_loss': loss_d/(bi+1)}, 
+                {'gen_batch_loss': bi_loss_g, 'disc_batch_loss': bi_loss_d}, 
                 global_batch_iter
             )
 
+            # if (bi+1) % PRINT_EVERY == 0:
+            #     print(f"[Epoch/Epochs] [{epoch+1}/{EPOCHS}], [Batch/Batches] [{bi+1}/{len(train_loader)}], Gen_loss: {loss_g/bi}, Disc_loss: {loss_d/bi}")
             if (bi+1) % PRINT_EVERY == 0:
-                print(f"[Epoch/Epochs] [{epoch+1}/{EPOCHS}], [Batch/Batches] [{bi+1}/{len(train_loader)}], Gen_loss: {loss_g/bi}, Disc_loss: {loss_d/bi}")
+                print(f"[Epoch/Epochs] [{epoch+1}/{EPOCHS}], [Batch/Batches] [{bi+1}/{len(train_loader)}], Gen_loss: {bi_loss_g}, Disc_loss: {bi_loss_d}")
             global_batch_iter += 1
 
 
