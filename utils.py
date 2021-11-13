@@ -4,6 +4,7 @@ import os
 import matplotlib.pyplot as plt
 
 from torchvision.utils import save_image
+from torch.utils.tensorboard import SummaryWriter
 
 plt.style.use('ggplot')
 
@@ -103,3 +104,19 @@ def save_loss_plots(gen_loss, disc_loss, path):
     plt.plot(disc_loss, label='Discriminator Loss')
     plt.legend()
     plt.savefig(path)
+
+def initialize_tensorboard(DATASET):
+    """
+    Function to initialize the TensorBoard SummaryWriter.
+
+    Parameters
+    :param DATASET: String dataset name to act as subpath.
+    :return the SummaryWriter object.
+    """
+    os.makedirs(f"runs/{DATASET}", exist_ok=True)
+    num_dirs = os.listdir(f"runs/{DATASET}")
+    writer = SummaryWriter(f"runs/{DATASET}/run_{len(num_dirs)+1}")
+    return writer
+
+def add_tensorboard_scalar(loss_name, writer, loss, n_step):
+    writer.add_scalars(loss_name, loss, n_step)

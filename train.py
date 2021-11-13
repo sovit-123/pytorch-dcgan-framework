@@ -8,7 +8,8 @@ from config import(
 from utils import (
     label_fake, label_real, create_noise,
     save_generator_image, make_output_dir, 
-    weights_init, print_params, save_loss_plots
+    weights_init, print_params, save_loss_plots,
+    initialize_tensorboard, add_tensorboard_scalar
 )
 from datasets import return_data
 
@@ -74,6 +75,9 @@ def train_generator(optimizer, data_fake, label_real):
     return loss
 
 if __name__ == '__main__':
+    # Initialize SummaryWriter.
+    writer = initialize_tensorboard(DATASET)
+
     # initialize the generator
     generator = Generator(
         NZ, IMAGE_SIZE, N_CHANNELS
@@ -84,6 +88,7 @@ if __name__ == '__main__':
     generator.apply(weights_init)
     # initialize discriminator weights
     discriminator.apply(weights_init)
+
 
     print('##### GENERATOR #####')
     print(generator)
@@ -128,13 +133,15 @@ if __name__ == '__main__':
     # ... and the loss graph
     make_output_dir(DATASET)
 
+    global_batch_iter = 0
+
     for epoch in range(EPOCHS):
         print(f"Epoch {epoch+1} of {EPOCHS}")
         epoch_start = time.time()
         loss_g = 0.0
         loss_d = 0.0
         for bi, data in enumerate(train_loader):
-            print(f"Batches: [{bi+2}/{len(train_loader)}]", end='\r')
+            print(f"Batches: [{bi+1}/{len(train_loader)}]", end='\r')
             image, _ = data
             image = image.to(DEVICE)
             b_size = len(image)
@@ -147,20 +154,28 @@ if __name__ == '__main__':
                     optim_d, data_real, data_fake, label_fake, label_real
                 )
 
-                # add current batch loss to `loss_d`
+                # add current discriminator batch loss to `loss_d`
                 loss_d += bi_loss_d
-                # append current batch loss to `batch_losses_d`
+                # append current discriminator batch loss to `batch_losses_d`
                 batch_losses_d.append(bi_loss_d.detach().cpu())
+
             data_fake = generator(create_noise(b_size, NZ).to(DEVICE))
             # train the generator network
             bi_loss_g = train_generator(optim_g, data_fake, label_real)
-            # add current batch loss to `loss_g`
+            # add current generator batch loss to `loss_g`
             loss_g += bi_loss_g
-            # append current batch loss to `batch_losses_g`
+            # append current generator batch loss to `batch_losses_g`
             batch_losses_g.append(bi_loss_g.detach().cpu())
+            add_tensorboard_scalar(
+                'Batch_Loss', writer, 
+                {'gen_batch_loss': loss_g/(bi+1), 'disc_batch_loss': loss_d/(bi+1)}, 
+                global_batch_iter
+            )
 
             if (bi+1) % PRINT_EVERY == 0:
                 print(f"[Epoch/Epochs] [{epoch+1}/{EPOCHS}], [Batch/Batches] [{bi+1}/{len(train_loader)}], Gen_loss: {loss_g/bi}, Disc_loss: {loss_d/bi}")
+            global_batch_iter += 1
+
 
         # create the final fake image for the epoch
         generated_img = generator(noise).cpu().detach()
@@ -171,8 +186,15 @@ if __name__ == '__main__':
         
         epoch_loss_g = loss_g / bi # total generator loss for the epoch
         epoch_loss_d = loss_d / bi # total discriminator loss for the epoch
+        # Append current generator epoch loss to list.
         losses_g.append(epoch_loss_g.detach().cpu())
+        # Append current discriminator epoch loss to list.
         losses_d.append(epoch_loss_d.detach().cpu())
+        add_tensorboard_scalar(
+            'Epoch_Loss', writer, 
+            {'disc_epoch_loss': epoch_loss_d, 'gen_epoch_loss': epoch_loss_g}, 
+            epoch
+        )
         epoch_end = time.time()
         
         print(f"Generator loss: {epoch_loss_g:.8f}, Discriminator loss: {epoch_loss_d:.8f}\n")
