@@ -120,3 +120,12 @@ def initialize_tensorboard(DATASET):
 
 def add_tensorboard_scalar(loss_name, writer, loss, n_step):
     writer.add_scalars(loss_name, loss, n_step)
+
+def save_gen_model(epochs, model, optimizer, criterion, path):
+    # save model checkpoint
+    torch.save({
+        'epoch': epochs,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss_fn': criterion,
+    }, path)

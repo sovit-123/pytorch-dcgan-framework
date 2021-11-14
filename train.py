@@ -3,13 +3,14 @@ from config import(
     IMAGE_SIZE, NZ, DEVICE, SAMPLE_SIZE, 
     EPOCHS, K, BATCH_SIZE, DATASET, 
     NUM_WORKERS, PRINT_EVERY, BETA1, BETA2,
-    N_CHANNELS, LEARNING_RATE
+    N_CHANNELS, LEARNING_RATE, GEN_MODEL_SAVE_INTERVAL
 )
 from utils import (
     label_fake, label_real, create_noise,
     save_generator_image, make_output_dir, 
     weights_init, print_params, save_loss_plots,
-    initialize_tensorboard, add_tensorboard_scalar
+    initialize_tensorboard, add_tensorboard_scalar,
+    save_gen_model
 )
 from datasets import return_data
 
@@ -166,23 +167,35 @@ if __name__ == '__main__':
             loss_g += bi_loss_g
             # append current generator batch loss to `batch_losses_g`
             batch_losses_g.append(bi_loss_g.detach().cpu())
+
+            # Add average loss of Generator and Discriminator till current batch to TensorBoard
             # add_tensorboard_scalar(
             #     'Batch_Loss', writer, 
             #     {'gen_batch_loss': loss_g/(bi+1), 'disc_batch_loss': loss_d/(bi+1)}, 
             #     global_batch_iter
             # )
+
+            # Add each batch Generator and Discriminator loss to TensorBoard
             add_tensorboard_scalar(
                 'Batch_Loss', writer, 
                 {'gen_batch_loss': bi_loss_g, 'disc_batch_loss': bi_loss_d}, 
                 global_batch_iter
             )
-
+            
+            # Print average loss till `PRINT_EVERY` iterations.
             # if (bi+1) % PRINT_EVERY == 0:
             #     print(f"[Epoch/Epochs] [{epoch+1}/{EPOCHS}], [Batch/Batches] [{bi+1}/{len(train_loader)}], Gen_loss: {loss_g/bi}, Disc_loss: {loss_d/bi}")
+            # Print the loss of the current iteration after `PRINT_EVERY` iterations.
             if (bi+1) % PRINT_EVERY == 0:
                 print(f"[Epoch/Epochs] [{epoch+1}/{EPOCHS}], [Batch/Batches] [{bi+1}/{len(train_loader)}], Gen_loss: {bi_loss_g}, Disc_loss: {bi_loss_d}")
             global_batch_iter += 1
 
+        # Save the generator model after the specified interval.
+        if (epoch+1) % GEN_MODEL_SAVE_INTERVAL == 0:
+            save_gen_model(
+                epoch+1, generator, optim_g, criterion, 
+                f"outputs_{DATASET}/generator_{epoch+1}.pth"
+            )
 
         # create the final fake image for the epoch
         generated_img = generator(noise).cpu().detach()
@@ -209,7 +222,12 @@ if __name__ == '__main__':
         print('-'*50, end='\n')
 
     print('DONE TRAINING')
-    torch.save(generator.state_dict(), f"outputs_{DATASET}/generator.pth")
+    # Save the generator model final time.
+    if (epoch+1) % GEN_MODEL_SAVE_INTERVAL == 0:
+        save_gen_model(
+            EPOCHS, generator, optim_g, criterion, 
+            f"outputs_{DATASET}/generator_final.pth"
+        )
 
 
     # save the generated images as GIF file
