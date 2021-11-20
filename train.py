@@ -23,7 +23,8 @@ import torch.nn as nn
 import imageio
 import glob as glob
 import time
-import sys
+import random
+import torch
 import numpy as np
 
 # function to train the discriminator network
@@ -78,6 +79,16 @@ def train_generator(optimizer, data_fake, label_real):
     return loss
 
 if __name__ == '__main__':
+    # Set seed
+    seed = 123
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+
     # initialize the generator
     generator = Generator(
         NZ, IMAGE_SIZE, N_CHANNELS
@@ -224,9 +235,6 @@ if __name__ == '__main__':
                 global_batch_iter
             )
             
-            # Print average loss till `PRINT_EVERY` iterations.
-            # if (bi+1) % PRINT_EVERY == 0:
-            #     print(f"[Epoch/Epochs] [{epoch+1}/{EPOCHS}], [Batch/Batches] [{bi+1}/{len(train_loader)}], Gen_loss: {loss_g/bi}, Disc_loss: {loss_d/bi}")
             # Print the loss of the current iteration after `PRINT_EVERY` iterations.
             if (bi+1) % PRINT_EVERY == 0:
                 print(f"[Epoch/Epochs] [{epoch+1}/{EPOCHS}], [Batch/Batches] [{bi+1}/{len(train_loader)}], Gen_loss: {bi_loss_g}, Disc_loss: {bi_loss_d}")

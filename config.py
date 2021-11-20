@@ -1,7 +1,7 @@
 import torch
 
 BATCH_SIZE = 128
-EPOCHS  = 10
+EPOCHS  = 100
 EPOCH_START = 0
 NUM_WORKERS = 4
 MULT_FACTOR = 1
@@ -31,7 +31,7 @@ BETA2 = 0.999
 LEARNING_RATE = 0.0002
 
 # Epcoh nterval at which to save the Generator Model.
-MODEL_SAVE_INTERVAL = 3
+MODEL_SAVE_INTERVAL = 25
 
 # Provide path to a trained model to resume training, else keep `None`.
 # GEN_MODEL_PATH = 'outputs_MNIST/generator_final.pth'
