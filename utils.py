@@ -130,7 +130,7 @@ def add_tensorboard_scalar(loss_name, writer, loss, n_step):
 
 def save_model(
     epochs, model, optimizer, criterion, 
-    losses, batch_losses, path
+    losses, batch_losses, global_batch_iter, path
 ):
     """
     Save the model to disk along with other properties..
@@ -141,6 +141,7 @@ def save_model(
     :param criterion: The loss function instance.
     :param losses: List containing loss values for each epoch.
     :param batch_losses: List containing batch-wise loss values.
+    :param global_batch_iter: Total number of batches trained for.
     :param path: String. Path to save the model
     """
     torch.save({
@@ -149,6 +150,7 @@ def save_model(
         'optimizer_state_dict': optimizer.state_dict(),
         'losses': losses,
         'batch_losses': batch_losses,
+        'global_batch_iter': global_batch_iter,
         'loss_fn': criterion,
     }, path)
 
@@ -173,7 +175,8 @@ def set_resume_training(model_path):
     optimizer_state_dict = checkpoint['optimizer_state_dict'] # Optimizer state.
     losses = checkpoint['losses'] # Available epoch-wise losses, a list.
     batch_losses = checkpoint['batch_losses'] # Available batch-wise losses.
+    global_batch_iter = checkpoint['global_batch_iter']
     return (
         epochs_trained, model_state_dict, optimizer_state_dict, 
-        losses, batch_losses
+        losses, batch_losses, global_batch_iter
     )

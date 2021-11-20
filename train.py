@@ -23,6 +23,8 @@ import torch.nn as nn
 import imageio
 import glob as glob
 import time
+import sys
+import numpy as np
 
 # function to train the discriminator network
 def train_discriminator(
@@ -104,15 +106,19 @@ if __name__ == '__main__':
     batch_losses_d = [] # to store discriminator loss after each batch
     images = [] # to store images generatd by the generator   
 
+    global_batch_iter = 0
+
     # Initialize SummaryWriter.
     writer = initialize_tensorboard(DATASET)
 
     # If path is provided, then training will resume from that
     # provided model's state dictionary.
     if GEN_MODEL_PATH:
+        print('[NOTE]: Resuming training...\n')
         (
             epochs_trained, gen_state_dict, 
-            gen_optim_state_dict, losses_g, batch_losses_g
+            gen_optim_state_dict, losses_g, batch_losses_g,
+            global_batch_iter
         ) = set_resume_training(GEN_MODEL_PATH)
         if EPOCHS <= epochs_trained:
             print(f"Models already trained for {epochs_trained} epochs...")
@@ -123,7 +129,8 @@ if __name__ == '__main__':
         
         (
             _, disc_state_dict,
-            disc_optim_state_dict, losses_d, batch_losses_d
+            disc_optim_state_dict, losses_d, batch_losses_d,
+            global_batch_iter
         ) = set_resume_training(DISC_MODEL_PATH)
         EPOCH_START = epochs_trained
 
@@ -133,13 +140,24 @@ if __name__ == '__main__':
         # Load the trained optimizer states.
         optim_g.load_state_dict(gen_optim_state_dict)
         optim_d.load_state_dict(disc_optim_state_dict)
+
         # Add the previous TensorBoard logs to current one,
         # for continuity.
-        # add_tensorboard_scalar(
-        #         'Batch_Loss', writer, 
-        #         {'gen_batch_loss': bi_loss_g, 'disc_batch_loss': bi_loss_d}, 
-        #         global_batch_iter
-        #     )
+        print('[NOTE]: Adding previous TensorBoard logs to current session...')
+        for batch_iter in range(global_batch_iter):
+            add_tensorboard_scalar(
+                    'Batch_Loss', writer, 
+                    {'gen_batch_loss': np.array(batch_losses_g[batch_iter]), 
+                    'disc_batch_loss': np.array(batch_losses_d[batch_iter])}, 
+                    batch_iter
+                )
+        for epoch_iter in range(epochs_trained):
+            add_tensorboard_scalar(
+                'Epoch_Loss', writer, 
+                {'gen_epoch_loss': np.array(losses_g[epoch_iter]), 
+                'disc_epoch_loss': np.array(losses_d[epoch_iter])}, 
+                epoch_iter 
+            )
 
     print('##### GENERATOR #####')
     print(generator)
@@ -166,8 +184,6 @@ if __name__ == '__main__':
     # create directory to save generated images, trained generator model...
     # ... and the loss graph
     make_output_dir(DATASET)
-
-    global_batch_iter = 0
 
     for epoch in range(EPOCH_START, EPOCHS):
         print(f"Epoch {epoch+1} of {EPOCHS}")
@@ -201,13 +217,6 @@ if __name__ == '__main__':
             # append current generator batch loss to `batch_losses_g`
             batch_losses_g.append(bi_loss_g.detach().cpu())
 
-            # Add average loss of Generator and Discriminator till current batch to TensorBoard
-            # add_tensorboard_scalar(
-            #     'Batch_Loss', writer, 
-            #     {'gen_batch_loss': loss_g/(bi+1), 'disc_batch_loss': loss_d/(bi+1)}, 
-            #     global_batch_iter
-            # )
-
             # Add each batch Generator and Discriminator loss to TensorBoard
             add_tensorboard_scalar(
                 'Batch_Loss', writer, 
@@ -227,27 +236,13 @@ if __name__ == '__main__':
         if (epoch+1) % MODEL_SAVE_INTERVAL == 0:
             save_model(
                 epoch+1, generator, optim_g, criterion, 
-                losses_g, batch_losses_g,
+                losses_g, batch_losses_g, global_batch_iter,
                 f"outputs_{DATASET}/generator_{epoch+1}.pth"
             )
             save_model(
                 epoch+1, discriminator, optim_d, criterion, 
-                losses_d, batch_losses_d,
+                losses_d, batch_losses_d, global_batch_iter,
                 f"outputs_{DATASET}/discriminator_{epoch+1}.pth"
-            )
-
-        print('DONE TRAINING')
-        # Save the models final time.
-        if (epoch+1) == EPOCHS:
-            save_model(
-                EPOCHS, generator, optim_g, criterion, 
-                losses_g, batch_losses_g,
-                f"outputs_{DATASET}/generator_final.pth"
-            )
-            save_model(
-                EPOCHS, discriminator, optim_d, criterion, 
-                losses_d, batch_losses_d,
-                f"outputs_{DATASET}/discriminator_final.pth"
             )
 
         # create the final fake image for the epoch
@@ -265,10 +260,24 @@ if __name__ == '__main__':
         losses_d.append(epoch_loss_d.detach().cpu())
         add_tensorboard_scalar(
             'Epoch_Loss', writer, 
-            {'disc_epoch_loss': epoch_loss_d, 'gen_epoch_loss': epoch_loss_g}, 
+            {'gen_epoch_loss': epoch_loss_g, 'disc_epoch_loss': epoch_loss_d}, 
             epoch
         )
         epoch_end = time.time()
+
+        print('DONE TRAINING')
+        # Save the models final time.
+        if (epoch+1) == EPOCHS:
+            save_model(
+                EPOCHS, generator, optim_g, criterion, 
+                losses_g, batch_losses_g, global_batch_iter,
+                f"outputs_{DATASET}/generator_final.pth"
+            )
+            save_model(
+                EPOCHS, discriminator, optim_d, criterion, 
+                losses_d, batch_losses_d, global_batch_iter,
+                f"outputs_{DATASET}/discriminator_final.pth"
+            )
         
         print(f"Generator loss: {epoch_loss_g:.8f}, Discriminator loss: {epoch_loss_d:.8f}\n")
         print(f"Took {(epoch_end-epoch_start):.3f} seconds for epoch {epoch+1}")

@@ -33,8 +33,8 @@ LEARNING_RATE = 0.0002
 # Epcoh nterval at which to save the Generator Model.
 MODEL_SAVE_INTERVAL = 3
 
-# Provide path to a trained model to resume training
-GEN_MODEL_PATH = 'outputs_MNIST/generator_final.pth'
-DISC_MODEL_PATH = 'outputs_MNIST/discriminator_final.pth'
-# GEN_MODEL_PATH = None
-# DISC_MODEL_PATH = None
+# Provide path to a trained model to resume training, else keep `None`.
+# GEN_MODEL_PATH = 'outputs_MNIST/generator_final.pth'
+# DISC_MODEL_PATH = 'outputs_MNIST/discriminator_final.pth'
+GEN_MODEL_PATH = None
+DISC_MODEL_PATH = None
