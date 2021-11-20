@@ -273,7 +273,6 @@ if __name__ == '__main__':
         )
         epoch_end = time.time()
 
-        print('DONE TRAINING')
         # Save the models final time.
         if (epoch+1) == EPOCHS:
             save_model(
@@ -290,12 +289,7 @@ if __name__ == '__main__':
         print(f"Generator loss: {epoch_loss_g:.8f}, Discriminator loss: {epoch_loss_d:.8f}\n")
         print(f"Took {(epoch_end-epoch_start):.3f} seconds for epoch {epoch+1}")
         print('-'*50, end='\n')
-
-
-    # save the generated images as GIF file
-    all_saved_image_paths = glob.glob(f"outputs_{DATASET}/gen_*.png")
-    imgs = [Image.open(image_path) for image_path in all_saved_image_paths]
-    imageio.mimsave(f"outputs_{DATASET}/generator_images.gif", imgs)
+    print('DONE TRAINING')
 
     # save epoch loss plot
     save_loss_plots(losses_g, losses_d, f"outputs_{DATASET}/epoch_loss.png")
@@ -303,3 +297,8 @@ if __name__ == '__main__':
     save_loss_plots(
         batch_losses_g, batch_losses_d, f"outputs_{DATASET}/batch_loss.png"
     )
+
+    # save the generated images as GIF file
+    all_saved_image_paths = glob.glob(f"outputs_{DATASET}/gen_*.png")
+    imgs = [Image.open(image_path) for image_path in all_saved_image_paths]
+    imageio.mimsave(f"outputs_{DATASET}/generator_images.gif", imgs)
