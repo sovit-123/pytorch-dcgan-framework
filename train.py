@@ -87,10 +87,33 @@ if __name__ == '__main__':
     # initialize discriminator weights
     discriminator.apply(weights_init)
 
+        # optimizers
+    optim_g = optim.Adam(
+        generator.parameters(), lr=LEARNING_RATE, betas=(BETA1, BETA2)
+    )
+    optim_d = optim.Adam(
+        discriminator.parameters(), lr=LEARNING_RATE, betas=(BETA1, BETA2)
+    )
+
+    # loss function
+    criterion = nn.BCELoss() 
+
+    losses_g = [] # to store generator loss after each epoch
+    losses_d = [] # to store discriminator loss after each epoch
+    batch_losses_g = [] # to store generator loss after each batch
+    batch_losses_d = [] # to store discriminator loss after each batch
+    images = [] # to store images generatd by the generator   
+
+    # Initialize SummaryWriter.
+    writer = initialize_tensorboard(DATASET)
+
     # If path is provided, then training will resume from that
     # provided model's state dictionary.
     if GEN_MODEL_PATH:
-        epochs_trained, gen_state_dict = set_resume_training(GEN_MODEL_PATH)
+        (
+            epochs_trained, gen_state_dict, 
+            gen_optim_state_dict, losses_g, batch_losses_g
+        ) = set_resume_training(GEN_MODEL_PATH)
         if EPOCHS <= epochs_trained:
             print(f"Models already trained for {epochs_trained} epochs...")
             print(f"Enter more number of epochs than {epochs_trained}")
@@ -98,14 +121,25 @@ if __name__ == '__main__':
         error_string += f" Enter more number of epochs than {epochs_trained}"
         assert EPOCHS > epochs_trained, error_string
         
-        _, disc_state_dict = set_resume_training(DISC_MODEL_PATH)
+        (
+            _, disc_state_dict,
+            disc_optim_state_dict, losses_d, batch_losses_d
+        ) = set_resume_training(DISC_MODEL_PATH)
         EPOCH_START = epochs_trained
 
         # Load the trained weights into the models.
-        # generator.
-
-    # Initialize SummaryWriter.
-    writer = initialize_tensorboard(DATASET)
+        generator.load_state_dict(gen_state_dict)
+        discriminator.load_state_dict(disc_state_dict)
+        # Load the trained optimizer states.
+        optim_g.load_state_dict(gen_optim_state_dict)
+        optim_d.load_state_dict(disc_optim_state_dict)
+        # Add the previous TensorBoard logs to current one,
+        # for continuity.
+        # add_tensorboard_scalar(
+        #         'Batch_Loss', writer, 
+        #         {'gen_batch_loss': bi_loss_g, 'disc_batch_loss': bi_loss_d}, 
+        #         global_batch_iter
+        #     )
 
     print('##### GENERATOR #####')
     print(generator)
@@ -116,23 +150,6 @@ if __name__ == '__main__':
     print(discriminator)
     print_params(discriminator, 'Discriminator')
     print('######################')
-
-    # optimizers
-    optim_g = optim.Adam(
-        generator.parameters(), lr=LEARNING_RATE, betas=(BETA1, BETA2)
-    )
-    optim_d = optim.Adam(
-        discriminator.parameters(), lr=LEARNING_RATE, betas=(BETA1, BETA2)
-    )
-
-    # loss function
-    criterion = nn.BCELoss()
-
-    losses_g = [] # to store generator loss after each epoch
-    losses_d = [] # to store discriminator loss after each epoch
-    batch_losses_g = [] # to store generator loss after each batch
-    batch_losses_d = [] # to store discriminator loss after each batch
-    images = [] # to store images generatd by the generator    
 
     generator.train()
     discriminator.train()
@@ -210,10 +227,12 @@ if __name__ == '__main__':
         if (epoch+1) % MODEL_SAVE_INTERVAL == 0:
             save_model(
                 epoch+1, generator, optim_g, criterion, 
+                losses_g, batch_losses_g,
                 f"outputs_{DATASET}/generator_{epoch+1}.pth"
             )
             save_model(
                 epoch+1, discriminator, optim_d, criterion, 
+                losses_d, batch_losses_d,
                 f"outputs_{DATASET}/discriminator_{epoch+1}.pth"
             )
 
@@ -222,10 +241,12 @@ if __name__ == '__main__':
         if (epoch+1) == EPOCHS:
             save_model(
                 EPOCHS, generator, optim_g, criterion, 
+                losses_g, batch_losses_g,
                 f"outputs_{DATASET}/generator_final.pth"
             )
             save_model(
                 EPOCHS, discriminator, optim_d, criterion, 
+                losses_d, batch_losses_d,
                 f"outputs_{DATASET}/discriminator_final.pth"
             )
 

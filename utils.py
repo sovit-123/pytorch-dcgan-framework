@@ -128,20 +128,27 @@ def initialize_tensorboard(DATASET):
 def add_tensorboard_scalar(loss_name, writer, loss, n_step):
     writer.add_scalars(loss_name, loss, n_step)
 
-def save_model(epochs, model, optimizer, criterion, path):
+def save_model(
+    epochs, model, optimizer, criterion, 
+    losses, batch_losses, path
+):
     """
-    Save the generator model to disk.
+    Save the model to disk along with other properties..
 
     :param epochs: Number of epochs trained for.
     :param model: The neural network model.
     :param optimizer: The optimizer instance.
     :param criterion: The loss function instance.
+    :param losses: List containing loss values for each epoch.
+    :param batch_losses: List containing batch-wise loss values.
     :param path: String. Path to save the model
     """
     torch.save({
         'epoch': epochs,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
+        'losses': losses,
+        'batch_losses': batch_losses,
         'loss_fn': criterion,
     }, path)
 
@@ -152,8 +159,21 @@ def set_resume_training(model_path):
     resume training.
 
     :param gen_model_path: Path to the trained generator model
+
+    Returns:
+        epochs_trained: Number of epochs already trained for.
+        model_state_dict: Trained state dictionary of the model.
+        optimizer_state_dict: Trained optimizer state.
+        losses: List containing epoch-wise losses.
+        batch_losses: List containing batch-wise losses.
     """
     checkpoint = torch.load(model_path)
-    epochs_trained = checkpoint['epoch']
-    state_dict = checkpoint['model_state_dict']
-    return epochs_trained, state_dict
+    epochs_trained = checkpoint['epoch'] # Number of epochs trained for.
+    model_state_dict = checkpoint['model_state_dict'] # Trained weights.
+    optimizer_state_dict = checkpoint['optimizer_state_dict'] # Optimizer state.
+    losses = checkpoint['losses'] # Available epoch-wise losses, a list.
+    batch_losses = checkpoint['batch_losses'] # Available batch-wise losses.
+    return (
+        epochs_trained, model_state_dict, optimizer_state_dict, 
+        losses, batch_losses
+    )

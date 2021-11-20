@@ -1,7 +1,7 @@
 import torch
 
 BATCH_SIZE = 128
-EPOCHS  = 5
+EPOCHS  = 10
 EPOCH_START = 0
 NUM_WORKERS = 4
 MULT_FACTOR = 1
@@ -36,4 +36,5 @@ MODEL_SAVE_INTERVAL = 3
 # Provide path to a trained model to resume training
 GEN_MODEL_PATH = 'outputs_MNIST/generator_final.pth'
 DISC_MODEL_PATH = 'outputs_MNIST/discriminator_final.pth'
-MODEL_PATH = None
+# GEN_MODEL_PATH = None
+# DISC_MODEL_PATH = None
