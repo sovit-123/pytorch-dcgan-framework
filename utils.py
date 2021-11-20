@@ -11,8 +11,11 @@ plt.style.use('ggplot')
 def label_real(size):
     """
     Fucntion to create real labels (ones)
-    :param size: batch size
-    :return real label vector
+
+    :param size: Batch size.
+
+    Returns:
+        Real label vector
     """
     data = torch.ones(size)
     return data
@@ -20,8 +23,11 @@ def label_real(size):
 def label_fake(size):
     """
     Fucntion to create fake labels (zeros)
-    :param size: batch size
-    :returns fake label vector
+
+    :param size: Batch size.
+
+    Returns:
+        Fake label vector
     """
     data = torch.zeros(size)
     return data
@@ -30,17 +36,21 @@ def label_fake(size):
 def create_noise(sample_size, nz):
     """
     Fucntion to create noise
-    :param sample_size: fixed sample size or batch size
-    :param nz: latent vector size
-    :returns random noise vector
+
+    :param sample_size: Fixed sample size or batch size.
+    :param nz: Latent vector size.
+
+    Returns:
+        Random noise vector
     """
     return torch.randn(sample_size, nz, 1, 1)
 
 def save_generator_image(image, path):
     """
     Function to save torch image batches
-    :param image: image tensor batch
-    :param path: path name to save image
+
+    :param image: Image tensor batch.
+    :param path: Path name to save image.
     """
     save_image(
         image, path, 
@@ -53,8 +63,7 @@ def make_output_dir(dir_name=None):
     generated image, the final GIF, the generator model, and the 
     loss graph
 
-    Parameters:
-    :param dir_name: path to the directory
+    :param dir_name: Path to the directory.
     """
     os.makedirs(f"outputs_{dir_name}", exist_ok=True)
 
@@ -78,7 +87,6 @@ def print_params(model, model_name=None):
     Function to print the total number of parameters and trainable 
     parameters in a model.
 
-    Parameters
     :param model: PyTorch model instance.
     :parm model_name: Name of the model. A string.
     """
@@ -94,7 +102,6 @@ def save_loss_plots(gen_loss, disc_loss, path):
     """
     Function to save the plots to disk.
 
-    Parameters
     :param plot_lost: List containing the values.
     :param name: Path to save the plot.
     """
@@ -109,9 +116,9 @@ def initialize_tensorboard(DATASET):
     """
     Function to initialize the TensorBoard SummaryWriter.
 
-    Parameters
     :param DATASET: String dataset name to act as subpath.
-    :return the SummaryWriter object.
+    Returns:
+        The SummaryWriter object.
     """
     os.makedirs(f"runs/{DATASET}", exist_ok=True)
     num_dirs = os.listdir(f"runs/{DATASET}")
@@ -121,8 +128,16 @@ def initialize_tensorboard(DATASET):
 def add_tensorboard_scalar(loss_name, writer, loss, n_step):
     writer.add_scalars(loss_name, loss, n_step)
 
-def save_gen_model(epochs, model, optimizer, criterion, path):
-    # save model checkpoint
+def save_model(epochs, model, optimizer, criterion, path):
+    """
+    Save the generator model to disk.
+
+    :param epochs: Number of epochs trained for.
+    :param model: The neural network model.
+    :param optimizer: The optimizer instance.
+    :param criterion: The loss function instance.
+    :param path: String. Path to save the model
+    """
     torch.save({
         'epoch': epochs,
         'model_state_dict': model.state_dict(),
@@ -131,6 +146,14 @@ def save_gen_model(epochs, model, optimizer, criterion, path):
     }, path)
 
 def set_resume_training(model_path):
+    """
+    This function is executed if a trained model path is provided to
+    `MODEL_PATH` in `config.py`. This sets up every required variable to
+    resume training.
+
+    :param gen_model_path: Path to the trained generator model
+    """
     checkpoint = torch.load(model_path)
     epochs_trained = checkpoint['epoch']
-    return epochs_trained
+    state_dict = checkpoint['model_state_dict']
+    return epochs_trained, state_dict

@@ -1,17 +1,17 @@
 from models import Generator, Discriminator
 from config import(
-    IMAGE_SIZE, MODEL_PATH, NZ, DEVICE, SAMPLE_SIZE, 
+    IMAGE_SIZE, NZ, DEVICE, SAMPLE_SIZE, 
     EPOCHS, K, BATCH_SIZE, DATASET, 
     NUM_WORKERS, PRINT_EVERY, BETA1, BETA2,
-    N_CHANNELS, LEARNING_RATE, GEN_MODEL_SAVE_INTERVAL,
-    MODEL_PATH, EPOCH_START
+    N_CHANNELS, LEARNING_RATE, MODEL_SAVE_INTERVAL,
+    EPOCH_START, GEN_MODEL_PATH, DISC_MODEL_PATH
 )
 from utils import (
     label_fake, label_real, create_noise,
     save_generator_image, make_output_dir, 
     weights_init, print_params, save_loss_plots,
     initialize_tensorboard, add_tensorboard_scalar,
-    save_gen_model, set_resume_training
+    save_model, set_resume_training
 )
 from datasets import return_data
 
@@ -76,18 +76,6 @@ def train_generator(optimizer, data_fake, label_real):
     return loss
 
 if __name__ == '__main__':
-    if MODEL_PATH:
-        epochs_trained = set_resume_training(MODEL_PATH)
-        if EPOCHS <= epochs_trained:
-            print(f"Models already trained for {epochs_trained} epochs...")
-            print(f"Enter more number of epochs than {epochs_trained}")
-        assert EPOCHS > epochs_trained, f"Models already trained for {epochs_trained} epochs..., Enter more number of epochs than {epochs_trained}"
-        # EPOCHS = EPOCHS - epochs_trained
-        EPOCH_START = epochs_trained + 1
-
-    # Initialize SummaryWriter.
-    writer = initialize_tensorboard(DATASET)
-
     # initialize the generator
     generator = Generator(
         NZ, IMAGE_SIZE, N_CHANNELS
@@ -99,6 +87,25 @@ if __name__ == '__main__':
     # initialize discriminator weights
     discriminator.apply(weights_init)
 
+    # If path is provided, then training will resume from that
+    # provided model's state dictionary.
+    if GEN_MODEL_PATH:
+        epochs_trained, gen_state_dict = set_resume_training(GEN_MODEL_PATH)
+        if EPOCHS <= epochs_trained:
+            print(f"Models already trained for {epochs_trained} epochs...")
+            print(f"Enter more number of epochs than {epochs_trained}")
+        error_string = f"Models already trained for {epochs_trained} epochs..."
+        error_string += f" Enter more number of epochs than {epochs_trained}"
+        assert EPOCHS > epochs_trained, error_string
+        
+        _, disc_state_dict = set_resume_training(DISC_MODEL_PATH)
+        EPOCH_START = epochs_trained
+
+        # Load the trained weights into the models.
+        # generator.
+
+    # Initialize SummaryWriter.
+    writer = initialize_tensorboard(DATASET)
 
     print('##### GENERATOR #####')
     print(generator)
@@ -199,11 +206,27 @@ if __name__ == '__main__':
                 print(f"[Epoch/Epochs] [{epoch+1}/{EPOCHS}], [Batch/Batches] [{bi+1}/{len(train_loader)}], Gen_loss: {bi_loss_g}, Disc_loss: {bi_loss_d}")
             global_batch_iter += 1
 
-        # Save the generator model after the specified interval.
-        if (epoch+1) % GEN_MODEL_SAVE_INTERVAL == 0:
-            save_gen_model(
+        # Save the models after the specified interval.
+        if (epoch+1) % MODEL_SAVE_INTERVAL == 0:
+            save_model(
                 epoch+1, generator, optim_g, criterion, 
                 f"outputs_{DATASET}/generator_{epoch+1}.pth"
+            )
+            save_model(
+                epoch+1, discriminator, optim_d, criterion, 
+                f"outputs_{DATASET}/discriminator_{epoch+1}.pth"
+            )
+
+        print('DONE TRAINING')
+        # Save the models final time.
+        if (epoch+1) == EPOCHS:
+            save_model(
+                EPOCHS, generator, optim_g, criterion, 
+                f"outputs_{DATASET}/generator_final.pth"
+            )
+            save_model(
+                EPOCHS, discriminator, optim_d, criterion, 
+                f"outputs_{DATASET}/discriminator_final.pth"
             )
 
         # create the final fake image for the epoch
@@ -229,13 +252,6 @@ if __name__ == '__main__':
         print(f"Generator loss: {epoch_loss_g:.8f}, Discriminator loss: {epoch_loss_d:.8f}\n")
         print(f"Took {(epoch_end-epoch_start):.3f} seconds for epoch {epoch+1}")
         print('-'*50, end='\n')
-
-    print('DONE TRAINING')
-    # Save the generator model final time.
-    save_gen_model(
-        EPOCHS, generator, optim_g, criterion, 
-        f"outputs_{DATASET}/generator_final.pth"
-    )
 
 
     # save the generated images as GIF file
