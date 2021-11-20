@@ -38,3 +38,8 @@ MODEL_SAVE_INTERVAL = 25
 # DISC_MODEL_PATH = 'outputs_MNIST/discriminator_final.pth'
 GEN_MODEL_PATH = None
 DISC_MODEL_PATH = None
+
+# Whether to create GIF from all the generated images at the end or not,
+# might need a considerable amoung of RAM as all the generated images will
+# be loaded to at once. Give values as either `True` or `False`.
+CREATE_GIF = False

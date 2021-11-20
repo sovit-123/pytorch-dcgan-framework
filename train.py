@@ -4,7 +4,8 @@ from config import(
     EPOCHS, K, BATCH_SIZE, DATASET, 
     NUM_WORKERS, PRINT_EVERY, BETA1, BETA2,
     N_CHANNELS, LEARNING_RATE, MODEL_SAVE_INTERVAL,
-    EPOCH_START, GEN_MODEL_PATH, DISC_MODEL_PATH
+    EPOCH_START, GEN_MODEL_PATH, DISC_MODEL_PATH, 
+    CREATE_GIF
 )
 from utils import (
     label_fake, label_real, create_noise,
@@ -298,7 +299,8 @@ if __name__ == '__main__':
         batch_losses_g, batch_losses_d, f"outputs_{DATASET}/batch_loss.png"
     )
 
-    # save the generated images as GIF file
-    all_saved_image_paths = glob.glob(f"outputs_{DATASET}/gen_*.png")
-    imgs = [Image.open(image_path) for image_path in all_saved_image_paths]
-    imageio.mimsave(f"outputs_{DATASET}/generator_images.gif", imgs)
+    # Save the generated images as GIF file if `CREATE_GIF` is `True`.
+    if CREATE_GIF:
+        all_saved_image_paths = glob.glob(f"outputs_{DATASET}/gen_*.png")
+        imgs = [Image.open(image_path) for image_path in all_saved_image_paths]
+        imageio.mimsave(f"outputs_{DATASET}/generator_images.gif", imgs)
