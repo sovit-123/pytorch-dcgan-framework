@@ -1,7 +1,7 @@
 import torch
 
 BATCH_SIZE = 128
-EPOCHS  = 100
+EPOCHS  = 50
 EPOCH_START = 0
 NUM_WORKERS = 4
 MULT_FACTOR = 1
@@ -20,7 +20,7 @@ K = 1
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # one of 'MNIST', 'FashionMNIST', 'CIFAR10', 'CELEBA', ...
 # ... 'ABSTRACT_ART'
-DATASET = 'MNIST'
+DATASET = 'FashionMNIST'
 
 # for printing metrics
 PRINT_EVERY = 100
