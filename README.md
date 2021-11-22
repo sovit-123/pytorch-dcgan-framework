@@ -8,8 +8,13 @@
 
 
 
-## TODO
-* Support for resuming training.
+## Current Features/Supports
+* You can resume training from any saved model.
+* TensorBoard logging of loss graphs.
+* Resuming training will also create new TensorBoard run where the old plots will be generated first, and then continue.
+* The generator model is from the paper [Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks](https://arxiv.org/abs/1511.06434v2). I tried to replicate it as well as I could.
+* The discriminator network follows all the rules from the [official paper](https://arxiv.org/abs/1511.06434v2) although there can be a few flexibilties to the size and depth of the network. Still, the core rules are all from the paper.
+* Option to save GIFs of generated images after training ends (See `config.py`). **If trained for high number of epochs (>500), it will require a lot of RAM as all the saved images from the 500 epochs will be loaded directly to memory to create teh GIF**. Therefore provided option to turn it off. 
 
 
 
@@ -57,6 +62,26 @@ input
 
 
 
+## Project Directory
+
+```
+.
+├── config.py
+├── datasets.py
+├── models.py
+├── outputs_ABSTRACT_ART
+├── outputs_CELEBA
+├── outputs_CIFAR10
+├── outputs_FashionMNIST
+├── outputs_MNIST
+├── README.md
+├── runs
+├── train.py
+└── utils.py
+```
+
+
+
 ## Training Configurations
 
 * The training configuration for MNIST and Fashion MNIST datasets are the same.
@@ -67,7 +92,8 @@ input
     import torch
     
     BATCH_SIZE = 128
-    EPOCHS  = 100
+    EPOCHS  = 50
+    EPOCH_START = 0
     NUM_WORKERS = 4
     MULT_FACTOR = 1
     IMAGE_SIZE = 64*MULT_FACTOR
@@ -94,6 +120,20 @@ input
     BETA1 = 0.5
     BETA2 = 0.999
     LEARNING_RATE = 0.0002
+    
+    # Epcoh nterval at which to save the Generator Model.
+    MODEL_SAVE_INTERVAL = 25
+    
+    # Provide path to a trained model to resume training, else keep `None`.
+    # GEN_MODEL_PATH = 'outputs_MNIST/generator_final.pth'
+    # DISC_MODEL_PATH = 'outputs_MNIST/discriminator_final.pth'
+    GEN_MODEL_PATH = None
+    DISC_MODEL_PATH = None
+    
+    # Whether to create GIF from all the generated images at the end or not,
+    # might need a considerable amoung of RAM as all the generated images will
+    # be loaded to at once. Give values as either `True` or `False`.
+    CREATE_GIF = False
     ```
 
 * For CIFAR10 and other colored images datasets, change the `N_CHANNELS` to 3, RGB images.
@@ -102,7 +142,8 @@ input
     import torch
     
     BATCH_SIZE = 128
-    EPOCHS  = 100
+    EPOCHS  = 50
+    EPOCH_START = 0
     NUM_WORKERS = 4
     MULT_FACTOR = 1
     IMAGE_SIZE = 64*MULT_FACTOR
@@ -120,7 +161,7 @@ input
     DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # one of 'MNIST', 'FashionMNIST', 'CIFAR10', 'CELEBA', ...
     # ... 'ABSTRACT_ART'
-    DATASET = 'CIFAR10'
+    DATASET = 'CELEBA'
     
     # for printing metrics
     PRINT_EVERY = 100
@@ -129,6 +170,20 @@ input
     BETA1 = 0.5
     BETA2 = 0.999
     LEARNING_RATE = 0.0002
+    
+    # Epcoh nterval at which to save the Generator Model.
+    MODEL_SAVE_INTERVAL = 25
+    
+    # Provide path to a trained model to resume training, else keep `None`.
+    # GEN_MODEL_PATH = 'outputs_MNIST/generator_final.pth'
+    # DISC_MODEL_PATH = 'outputs_MNIST/discriminator_final.pth'
+    GEN_MODEL_PATH = None
+    DISC_MODEL_PATH = None
+    
+    # Whether to create GIF from all the generated images at the end or not,
+    # might need a considerable amoung of RAM as all the generated images will
+    # be loaded to at once. Give values as either `True` or `False`.
+    CREATE_GIF = False
     ```
-
+    
     
