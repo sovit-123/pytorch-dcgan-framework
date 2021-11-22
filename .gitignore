@@ -1,4 +1,5 @@
 outputs_*/gen*.png
 outputs_*/*.pth
+*.gif
 
 __pycache__/
